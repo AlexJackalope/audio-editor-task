@@ -102,10 +102,10 @@ class WavEditor():
         print('Concatination complited')
 
     def reverb(self, size):
+        size = int(size)
         if size < 0 or size > 100:
             print('Reverberation room scale must be between 0 and 100')
             return
-        size = int(size)
         fx = (AudioEffectsChain().reverb(room_scale=size))
         self.create_new_state()
         fx(self.current_state, self.new_state)

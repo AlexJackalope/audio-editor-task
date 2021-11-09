@@ -4,6 +4,7 @@ ___
 ___
 ### Требования:
 * Python версии 3.9
+* Модуль pysndfx
 * SoX в PATH
 * ffmpeg в PATH
 ___
