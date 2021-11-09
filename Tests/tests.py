@@ -43,6 +43,7 @@ class TestsConverter(TestCase):
     def setUp(self) -> None:
         self.wav_path = os.path.join(os.path.dirname(__file__), 'Fox.wav')
         self.converter = WavConverter()
+        self.converter = WavConverter()
 
     def test_filechecks(self):
         self.converter.check_file(self.wav_path)

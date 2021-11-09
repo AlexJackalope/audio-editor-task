@@ -9,7 +9,8 @@ from WavEditor import WavEditor
 def parse_start_args():
     parser = argparse.ArgumentParser(
         description="Console audio editor.\n"
-                    "To start working input path to your audio (.wav and .mp3 formats are supported)\n",
+                    "To start working input path to your audio "
+                    "(.wav and .mp3 formats are supported)\n",
         formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("audio_path", help="Path to audio to edit")
     return parser.parse_args()
@@ -17,15 +18,21 @@ def parse_start_args():
 
 def print_help():
     message = "Console audio editor commands:\n"\
-              "* speed_chg [coefficient] - changes audio speed with mentioned coefficient\n"\
-              "* cut [start] [length] - cuts off a fragment mentioned with length from start time\n"\
+              "* speed_chg [coefficient] - " \
+              "changes audio speed with mentioned coefficient\n"\
+              "* cut [start] [length] - " \
+              "cuts off a fragment mentioned with length from start time\n"\
               "  (time is always written in seconds)\n"\
-              "* concat [path to audio] - adds new audio to the end of current\n"\
-              "* reverb [room scale between 0 and 100] - makes reverberation\n"\
+              "* concat [path to audio] - " \
+              "adds new audio to the end of current\n"\
+              "* reverb [room scale between 0 and 100] - " \
+              "makes reverberation\n"\
               "* normalize - normalizes audio\n"\
-              "* rollback - returns to previous step, you can cancel only two last steps\n"\
+              "* rollback - returns to previous step, " \
+              "you can cancel only two last steps\n"\
               "To end working:\n"\
-              "* export [path to export] [export file name with .wav or .mp3 extention]"
+              "* export [path to export] " \
+              "[export file name with .wav or .mp3 extention]"
     print(message)
 
 
@@ -49,7 +56,10 @@ def main():
         if args[0] == 'help':
             print_help()
         elif args[0] == 'concat':
-            new_source_name = os.path.join(dir_path, 'EditorFiles', 'source' + used_files_counter + '.wav')
+            new_source_name = os.path.join(dir_path,
+                                           'EditorFiles',
+                                           'source' + used_files_counter +
+                                           '.wav')
             used_files_counter += 1
             try:
                 converter.convert(converter, args[1], new_source_name)

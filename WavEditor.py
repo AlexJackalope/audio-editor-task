@@ -41,7 +41,8 @@ class WavEditor():
     def shift_states(self):
         if self.pre_previous_state is not None:
             os.remove(self.pre_previous_state)
-        self.pre_previous_state, self.previous_state = self.previous_state, self.current_state
+        self.pre_previous_state, self.previous_state = \
+            self.previous_state, self.current_state
         self.current_state = self.new_state
         if self.state_index < 4:
             self.state_index += 1
@@ -50,7 +51,8 @@ class WavEditor():
 
     def rollback(self):
         if self.previous_state is not None:
-            self.current_state, self.previous_state = self.previous_state, self.pre_previous_state
+            self.current_state, self.previous_state = \
+                self.previous_state, self.pre_previous_state
             self.pre_previous_state = None
             self.setup_current_characteristics()
         else:
@@ -58,7 +60,8 @@ class WavEditor():
 
     def create_new_state(self):
         filename = 'editedAudioData' + str(self.state_index) + '.wav'
-        self.new_state = os.path.join(os.path.dirname(__file__), 'EditorFiles', filename)
+        self.new_state = os.path.join(os.path.dirname(__file__),
+                                      'EditorFiles', filename)
         with open(self.new_state, 'w'):
             pass
 
@@ -82,7 +85,9 @@ class WavEditor():
         per_second = self.sample_width * self.rate * self.channels
         start_byte = start * per_second
         if start_byte >= len(self.signal):
-            raise AttributeError('Your audio is only ' + str(len(self.signal) // per_second) + 'seconds long')
+            raise AttributeError('Your audio is only ' +
+                                 str(len(self.signal) // per_second) +
+                                 'seconds long')
         end_byte = start_byte + length * per_second
         self.signal = self.signal[start_byte:end_byte]
         self.fill_new_state()
@@ -94,7 +99,9 @@ class WavEditor():
             sample_width = audio.getsampwidth()
             rate = audio.getframerate()
             signal = audio.readframes(-1)
-        if channels != self.channels or sample_width != self.sample_width or rate != self.rate:
+        if channels != self.channels \
+                or sample_width != self.sample_width \
+                or rate != self.rate:
             print("Sorry, these audios are incompatible")
             return
         self.signal = self.signal + signal
