@@ -4,11 +4,10 @@ import subprocess
 
 class WavConverter:
     def convert(self, filename, export_path):
-        try:
-            in_ext = self.check_file(filename, filename)
-        except (FileNotFoundError, NameError) as e:
-            raise e
-        out_ext = os.path.splitext(export_path)[1]
+        self.check_file(filename, filename)
+        in_ext = self.check_ext(filename, filename)
+        out_ext = self.check_ext(export_path, export_path)
+
         if in_ext == '.wav' and out_ext == '.wav':
             with open(filename, 'rb') as source:
                 with open(export_path, 'wb') as export:
@@ -18,8 +17,21 @@ class WavConverter:
 
     def check_file(self, filename):
         if not os.path.isfile(filename):
-            raise FileNotFoundError(filename + " file does not exist")
+            raise ConverterError(filename + " file does not exist")
+
+    def check_ext(self, filename):
         ext = os.path.splitext(filename)[1]
         if ext != '.wav' and ext != '.mp3':
-            raise NameError("This editor does not work with " + ext)
+            raise ConverterError("This editor does not work with " + ext + " extention")
         return ext
+
+
+class ConverterError(Exception):
+    def __init__(self, message=None):
+        self.message = message
+
+    def __str__(self):
+        if self.message is not None:
+            return self.message
+        else:
+            return 'ConverterError'

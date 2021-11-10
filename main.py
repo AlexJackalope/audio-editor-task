@@ -2,7 +2,7 @@ import os
 import argparse
 import sys
 
-from WavConverter import WavConverter
+from WavConverter import WavConverter, ConverterError
 from WavEditor import WavEditor, WavEditorError
 
 
@@ -36,21 +36,30 @@ def print_help():
     print(message)
 
 
+def clear_states():
+    dir_path = os.path.join(os.path.dirname(__file__), 'EditorFiles')
+    for file_object in os.listdir(dir_path):
+        os.remove(os.path.join(dir_path, file_object))
+
+
 def main():
     args = parse_start_args()
     converter = WavConverter
     dir_path = os.path.dirname(__file__)
     if sys.platform == 'win32':
         dir_path = dir_path.replace("/", "\\")
+    clear_states()
     editor_start_file = os.path.join(dir_path, 'EditorFiles', 'source0.wav')
     used_files_counter = 1
+
     try:
         converter.convert(converter, args.audio_path, editor_start_file)
-    except (FileNotFoundError, NameError) as e:
+    except ConverterError as e:
         sys.exit(e)
 
     editor = WavEditor(editor_start_file)
     print('Editor preparing ended, start calling commands.')
+
     for line in sys.stdin:
         args = line.split()
         if args[0] == 'help':
@@ -67,9 +76,20 @@ def main():
                 print(e)
             editor.concat(new_source_name)
         elif args[0] == 'export':
-            export_name = os.path.join(args[1], args[2])
-            converter.convert(converter, editor.current_state, export_name)
-            editor.clear_states()
+            try:
+                export_name = os.path.join(args[1], args[2])
+            except IndexError:
+                print('Input path to directory and desired filename')
+                continue
+            if not os.path.isdir(args[1]):
+                print('Input directory does not exist')
+                continue
+            try:
+                converter.convert(converter, editor.current_state, export_name)
+            except ConverterError as e:
+                print(e)
+                continue
+            clear_states()
             print("Audio successfully exported, editor's work completed")
             sys.exit()
         else:

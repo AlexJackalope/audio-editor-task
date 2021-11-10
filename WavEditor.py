@@ -13,7 +13,6 @@ class WavEditor():
         self.pre_previous_state = None
         self.previous_state = None
         self.state_index = 0
-        self.clear_states(exception=os.path.split(audio_path)[1])
         self.current_state = audio_path
         self.setup_current_characteristics()
 
@@ -27,16 +26,6 @@ class WavEditor():
         except wave.Error as e:
             print("File cannot be converted to a supported format" + e.args[0])
             sys.exit()
-
-    def clear_states(self, exception=None):
-        dir_path = os.path.join(os.path.dirname(__file__), 'EditorFiles')
-        for file_object in os.listdir(dir_path):
-            if file_object == exception:
-                continue
-            os.remove(os.path.join(dir_path, file_object))
-        self.pre_previous_state = None
-        self.previous_state = None
-        self.current_state = None
 
     def shift_states(self):
         if self.pre_previous_state is not None:
@@ -129,6 +118,7 @@ class WavEditor():
         fx(self.current_state, self.new_state)
         self.shift_states()
         print('Normalization complited')
+
 
 class WavEditorError(Exception):
     def __init__(self, message=None):
