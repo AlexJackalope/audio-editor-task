@@ -55,8 +55,9 @@ class WavEditor():
                 self.previous_state, self.pre_previous_state
             self.pre_previous_state = None
             self.setup_current_characteristics()
+            print("Rollback complited")
         else:
-            raise RuntimeError("Nowhere to rollback")
+            raise WavEditorError("In current state you cannot rollback")
 
     def create_new_state(self):
         filename = 'editedAudioData' + str(self.state_index) + '.wav'
@@ -75,17 +76,22 @@ class WavEditor():
         self.shift_states()
 
     def speed_chg(self, coefficient):
-        self.rate *= coefficient
+        coeff = int(coefficient)
+        if coeff <= 0:
+            raise WavEditorError('Coefficient of speed change must be greater than 0')
+        self.rate *= coeff
         self.fill_new_state()
         print('Speed changing complited')
 
     def cut(self, start, length):
         start = int(start)
         length = int(length)
+        if start < 0 or length < 0:
+            raise WavEditorError('Start time and length to cut cannot be less than 0')
         per_second = self.sample_width * self.rate * self.channels
         start_byte = start * per_second
         if start_byte >= len(self.signal):
-            raise AttributeError('Your audio is only ' +
+            raise WavEditorError('Your audio is only ' +
                                  str(len(self.signal) // per_second) +
                                  'seconds long')
         end_byte = start_byte + length * per_second
@@ -102,8 +108,7 @@ class WavEditor():
         if channels != self.channels \
                 or sample_width != self.sample_width \
                 or rate != self.rate:
-            print("Sorry, these audios are incompatible")
-            return
+            raise WavEditorError("Sorry, these audios are incompatible")
         self.signal = self.signal + signal
         self.fill_new_state()
         print('Concatination complited')
@@ -111,8 +116,7 @@ class WavEditor():
     def reverb(self, size):
         size = int(size)
         if size < 0 or size > 100:
-            print('Reverberation room scale must be between 0 and 100')
-            return
+            raise WavEditorError('Reverberation room scale must be between 0 and 100')
         fx = (AudioEffectsChain().reverb(room_scale=size))
         self.create_new_state()
         fx(self.current_state, self.new_state)
@@ -125,3 +129,13 @@ class WavEditor():
         fx(self.current_state, self.new_state)
         self.shift_states()
         print('Normalization complited')
+
+class WavEditorError(Exception):
+    def __init__(self, message=None):
+        self.message = message
+
+    def __str__(self):
+        if self.message is not None:
+            return self.message
+        else:
+            return 'WavEditorError'

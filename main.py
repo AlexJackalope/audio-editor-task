@@ -3,7 +3,7 @@ import argparse
 import sys
 
 from WavConverter import WavConverter
-from WavEditor import WavEditor
+from WavEditor import WavEditor, WavEditorError
 
 
 def parse_start_args():
@@ -76,7 +76,12 @@ def main():
             try:
                 method = getattr(editor, args[0])
                 method(*args[1:])
-            except RuntimeError as e:
+            except AttributeError:
+                print("No such command, print 'help' to see the list "
+                      "of available commands")
+            except TypeError:
+                print('Your input was wrong, print "help" to see hints')
+            except WavEditorError as e:
                 print(e)
     print('a')
 
