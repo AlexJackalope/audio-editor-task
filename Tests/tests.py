@@ -2,8 +2,8 @@ import os
 import sys
 import wave
 from unittest import TestCase
-from WavEditor import WavEditor
-from WavConverter import WavConverter
+from WavEditor import WavEditor, WavEditorError
+from WavConverter import WavConverter, ConverterError
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                              os.path.pardir))
@@ -32,22 +32,23 @@ class TestsWavEditor(TestCase):
         assert len(content) == channels * sample_width * rate * 5
 
     def test_cut_out_of_bounds(self):
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(WavEditorError):
             self.editor.cut(20, 20)
 
     def tearDown(self) -> None:
-        self.editor.clear_states()
+        WavEditor.clear_states()
 
 
 class TestsConverter(TestCase):
     def setUp(self) -> None:
         self.wav_path = os.path.join(os.path.dirname(__file__), 'Fox.wav')
-        self.converter = WavConverter()
+        self.mp3_path = os.path.join(os.path.dirname(__file__), 'Cdur.wav')
         self.converter = WavConverter()
 
     def test_filechecks(self):
         self.converter.check_file(self.wav_path)
-        with self.assertRaises(FileNotFoundError):
+        self.converter.check_ext(self.wav_path)
+        with self.assertRaises(ConverterError):
             self.converter.check_file('notexisting')
-        with self.assertRaises(NameError):
-            self.converter.check_file('tests.py')
+        with self.assertRaises(ConverterError):
+            self.converter.check_ext('tests.py')

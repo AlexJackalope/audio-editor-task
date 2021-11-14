@@ -4,7 +4,7 @@ import wave
 from pysndfx import AudioEffectsChain
 
 
-class WavEditor():
+class WavEditor:
     def __init__(self, audio_path):
         self.channels = None
         self.sample_width = None
@@ -14,9 +14,9 @@ class WavEditor():
         self.previous_state = None
         self.state_index = 0
         self.current_state = audio_path
-        self.setup_current_characteristics()
+        self._setup_current_characteristics()
 
-    def setup_current_characteristics(self):
+    def _setup_current_characteristics(self):
         try:
             with wave.open(self.current_state, 'rb') as audio:
                 self.channels = audio.getnchannels()
@@ -27,7 +27,7 @@ class WavEditor():
             print("File cannot be converted to a supported format" + e.args[0])
             sys.exit()
 
-    def shift_states(self):
+    def _shift_states(self):
         if self.pre_previous_state is not None:
             os.remove(self.pre_previous_state)
         self.pre_previous_state, self.previous_state = \
@@ -38,38 +38,38 @@ class WavEditor():
         else:
             self.state_index = 0
 
-    def rollback(self):
-        if self.previous_state is not None:
-            self.current_state, self.previous_state = \
-                self.previous_state, self.pre_previous_state
-            self.pre_previous_state = None
-            self.setup_current_characteristics()
-            print("Rollback complited")
-        else:
-            raise WavEditorError("In current state you cannot rollback")
-
-    def create_new_state(self):
+    def _create_new_state(self):
         filename = 'editedAudioData' + str(self.state_index) + '.wav'
         self.new_state = os.path.join(os.path.dirname(__file__),
                                       'EditorFiles', filename)
         with open(self.new_state, 'w'):
             pass
 
-    def fill_new_state(self):
-        self.create_new_state()
+    def _fill_new_state(self):
+        self._create_new_state()
         with wave.open(self.new_state, 'wb') as result:
             result.setnchannels(self.channels)
             result.setsampwidth(self.sample_width)
             result.setframerate(self.rate)
             result.writeframes(self.signal)
-        self.shift_states()
+        self._shift_states()
+
+    def rollback(self):
+        if self.previous_state is not None:
+            self.current_state, self.previous_state = \
+                self.previous_state, self.pre_previous_state
+            self.pre_previous_state = None
+            self._setup_current_characteristics()
+            print("Rollback complited")
+        else:
+            raise WavEditorError("In current state you cannot rollback")
 
     def speed_chg(self, coefficient):
         coeff = int(coefficient)
         if coeff <= 0:
             raise WavEditorError('Coefficient of speed change must be greater than 0')
         self.rate *= coeff
-        self.fill_new_state()
+        self._fill_new_state()
         print('Speed changing complited')
 
     def cut(self, start, length):
@@ -85,7 +85,7 @@ class WavEditor():
                                  'seconds long')
         end_byte = start_byte + length * per_second
         self.signal = self.signal[start_byte:end_byte]
-        self.fill_new_state()
+        self._fill_new_state()
         print('Cutting complited')
 
     def concat(self, new_file):
@@ -99,7 +99,7 @@ class WavEditor():
                 or rate != self.rate:
             raise WavEditorError("Sorry, these audios are incompatible")
         self.signal = self.signal + signal
-        self.fill_new_state()
+        self._fill_new_state()
         print('Concatination complited')
 
     def reverb(self, size):
@@ -107,17 +107,23 @@ class WavEditor():
         if size < 0 or size > 100:
             raise WavEditorError('Reverberation room scale must be between 0 and 100')
         fx = (AudioEffectsChain().reverb(room_scale=size))
-        self.create_new_state()
+        self._create_new_state()
         fx(self.current_state, self.new_state)
-        self.shift_states()
+        self._shift_states()
         print('Reverberation complited')
 
     def normalize(self):
         fx = (AudioEffectsChain().normalize())
-        self.create_new_state()
+        self._create_new_state()
         fx(self.current_state, self.new_state)
-        self.shift_states()
+        self._shift_states()
         print('Normalization complited')
+
+    @staticmethod
+    def clear_states():
+        dir_path = os.path.join(os.path.dirname(__file__), 'EditorFiles')
+        for file_object in os.listdir(dir_path):
+            os.remove(os.path.join(dir_path, file_object))
 
 
 class WavEditorError(Exception):
