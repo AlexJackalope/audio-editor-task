@@ -15,9 +15,9 @@ class TestsWavEditor(TestCase):
         self.editor = WavEditor(self.wav_path)
 
     def test_speed_up(self):
-        self.editor.speed_chg(1.5)
         with wave.open(self.wav_path) as sourse:
             prev_rate = sourse.getframerate()
+        self.editor.speed_chg(1.5)
         with wave.open(self.editor.current_state) as edited:
             rate = edited.getframerate()
         assert rate == 1.5 * prev_rate

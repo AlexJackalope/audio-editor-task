@@ -65,7 +65,7 @@ class WavEditor:
             raise WavEditorError("In current state you cannot rollback")
 
     def speed_chg(self, coefficient):
-        coeff = int(coefficient)
+        coeff = float(coefficient)
         if coeff <= 0:
             raise WavEditorError('Coefficient of speed change must be greater than 0')
         self.rate *= coeff
