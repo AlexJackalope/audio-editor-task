@@ -5,6 +5,7 @@ import sys
 from WavConverter import WavConverter, ConverterError
 from WavEditor import WavEditor, WavEditorError
 
+files_counter = 1
 
 def parse_start_args():
     parser = argparse.ArgumentParser(
@@ -12,12 +13,14 @@ def parse_start_args():
                     "To start working input path to your audio "
                     "(.wav and .mp3 formats are supported)\n",
         formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-s", "--script", action='store_true')
     parser.add_argument("audio_path", help="Path to audio to edit")
     return parser.parse_args()
 
 
 def print_help():
     message = "Console audio editor commands:\n"\
+              "** to give script of commands input: script [path to script file]\n" \
               "* speed_chg [coefficient] - " \
               "changes audio speed with mentioned coefficient\n"\
               "* cut [start] [length] - " \
@@ -88,38 +91,48 @@ def call_editor_method(editor, method_name, args):
         print(e)
 
 
+def read_command(args, dir_path, converter, editor):
+    global files_counter
+    if args[0] == 'help':
+        print_help()
+    elif args[0] == 'concat':
+        new_source_name = os.path.join(
+            dir_path, 'EditorFiles', 'source' + files_counter + '.wav')
+        prepare_concatenation(converter, args[1], new_source_name)
+        files_counter += 1
+        editor.concat(new_source_name)
+    elif args[0] == 'export':
+        export_name = check_export_path(args[1], args[2])
+        if export_name is None:
+            return
+        try:
+            converter.convert(converter, editor.current_state, export_name)
+        except ConverterError as e:
+            print(e)
+            return
+        WavEditor.clear_states()
+        print("Audio successfully exported, editor's work completed")
+        sys.exit()
+    else:
+        call_editor_method(editor, args[0], args[1:])
+
+
 def main():
     args = parse_start_args()
     dir_path = get_dir_path()
     converter, editor = setup_tools(dir_path, args.audio_path)
-    print('Editor preparing ended, start calling commands.')
 
-    files_counter = 1
-    for line in sys.stdin:
-        args = line.split()
+    if args.script:
+        print('Editor preparing ended, input path to script file.')
 
-        if args[0] == 'help':
-            print_help()
-        elif args[0] == 'concat':
-            new_source_name = os.path.join(
-                dir_path, 'EditorFiles', 'source' + files_counter + '.wav')
-            prepare_concatenation(converter, args[1], new_source_name)
-            files_counter += 1
-            editor.concat(new_source_name)
-        elif args[0] == 'export':
-            export_name = check_export_path(args[1], args[2])
-            if export_name is None:
-                continue
-            try:
-                converter.convert(converter, editor.current_state, export_name)
-            except ConverterError as e:
-                print(e)
-                continue
-            WavEditor.clear_states()
-            print("Audio successfully exported, editor's work completed")
-            sys.exit()
-        else:
-            call_editor_method(editor, args[0], args[1:])
+        script_path = input()
+        with open(script_path, 'r', encoding='utf-8') as script:
+            while True:
+                read_command(script.readline().split(), dir_path, converter, editor)
+    else:
+        print('Editor preparing ended, start calling commands.')
+        for line in sys.stdin:
+            read_command(line.split(), dir_path, converter, editor)
     print('a')
 
 

@@ -1,5 +1,6 @@
 import os
 import subprocess
+import contextlib
 
 
 class WavConverter:
@@ -13,7 +14,8 @@ class WavConverter:
                 with open(export_path, 'wb') as export:
                     export.write(source.read())
         else:
-            subprocess.call(['ffmpeg', '-i', filename, export_path])
+            with contextlib.redirect_stdout(None):
+                subprocess.call(['ffmpeg', '-i', filename, export_path])
 
     def check_file(self, filename):
         if not os.path.isfile(filename):
